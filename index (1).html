@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Controle de Saldo de Fornecedores</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f4f6f4;--card:#fff;--tx:#1d2b22;--mu:#6b7a70;--ln:#e2e8e3;--br:#1f4d36;--ok:#4f8a5b;--at:#d9a521;--cr:#e9822b;--sm:#d64545;--nm:#8a949c}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111815;--card:#1a2420;--tx:#e8efe9;--mu:#93a39a;--ln:#2a3730;--br:#7fc29a}}
+:root[data-theme="dark"]{--bg:#111815;--card:#1a2420;--tx:#e8efe9;--mu:#93a39a;--ln:#2a3730;--br:#7fc29a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.w{max-width:1180px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:22px;margin:0}.sub{color:var(--mu);font-size:13px;margin:2px 0 16px}
+.g{display:grid;gap:12px}.k{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.c{background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:14px}
+.l{font-size:11px;letter-spacing:.05em;color:var(--mu);text-transform:uppercase}.v{font-size:22px;font-weight:700;margin-top:4px}
+.bar{height:6px;border-radius:3px;background:var(--ln);overflow:hidden;margin-top:8px}.bar i{display:block;height:100%;background:var(--ok)}
+.risk{border-left:4px solid var(--cr)}
+.row2{grid-template-columns:1fr 1fr;margin-top:12px}@media(max-width:800px){.row2{grid-template-columns:1fr}}
+h2{font-size:14px;margin:0 0 10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 10px;align-items:center}
+.chip{border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:20px;padding:6px 12px;cursor:pointer;font:inherit;display:flex;gap:6px;align-items:center}
+.chip.on{border-color:var(--br);box-shadow:0 0 0 1px var(--br)}.d{width:10px;height:10px;border-radius:50%}
+input{border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:8px;padding:7px 10px;font:inherit;margin-left:auto;min-width:180px}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:760px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--mu);text-align:left;padding:8px;border-bottom:1px solid var(--ln);position:sticky;top:0;background:var(--card);cursor:pointer}
+td{padding:8px;border-bottom:1px solid var(--ln)}.r{text-align:right;font-variant-numeric:tabular-nums}
+.tag{font-size:11px;font-weight:700;padding:3px 8px;border-radius:10px;color:#fff;white-space:nowrap}
+.mini{display:flex;align-items:center;gap:6px;min-width:110px}.mini .bar{flex:1;margin:0}
+.it{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--ln)}.it:last-child{border:0}
+svg text{fill:var(--mu);font-size:11px}
+.n{color:var(--mu);font-size:12px;margin-top:14px}
+</style></head><body><div class="w">
+<h1>Controle de Saldo de Fornecedores</h1>
+<div class="sub">Saldo do contrato, consumo médio e cobertura estimada · cobertura = (OC gerada − utilizado) ÷ média 3M, em meses</div>
+<div class="chips" style="margin:0 0 12px"><button class="chip on" id="tD">Dashboard</button><button class="chip" id="tC">Cadastro de UN</button></div>
+<div id="pgD">
+<div class="chips" style="margin:0 0 12px"><b>UNIDADE</b> <select id="un" style="border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:8px;padding:7px 10px;font:inherit"></select><span id="dir" style="color:var(--mu)"></span></div>
+<div class="g k" id="kpi"></div>
+<div class="g row2">
+<div class="c risk"><h2>Atenção imediata: menor cobertura</h2><div id="top"></div></div>
+<div class="c"><h2>Medição por BM (R$ milhões)</h2><div id="ch"></div></div>
+</div>
+<div class="c tw" style="margin-top:12px"><h2>Comparativo por diretor</h2><table id="cmp" style="min-width:760px"></table></div>
+<div class="chips" id="chips"></div>
+<div class="c tw"><table><thead><tr><th data-k="n">Fornecedor</th><th class="r" data-k="c">Contratado</th><th class="r" data-k="u">Utilizado</th><th data-k="p">% utilizado</th><th class="r" data-k="s">Saldo</th><th class="r" data-k="m">Média 3M</th><th class="r" data-k="f">Cobertura</th><th data-k="t">Status</th></tr></thead><tbody id="tb"></tbody></table></div>
+<div class="n">Fornecedores repetidos (ex.: Votorantim, ArcelorMittal, Geogrupo) são contratos distintos e foram mantidos em linhas separadas. UN 2, UN 3 e UN 4 ainda não têm dados carregados; os dados da UN 464 são de uma data fixa.</div></div>
+<div id="pgC" style="display:none"><div class="c"><h2>Cadastro de UN da obra</h2><div style="display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))"><input id="cu" placeholder="UN da obra (ex.: UN 464)" style="margin:0"><input id="cd" placeholder="Nome do diretor" style="margin:0"><input id="cv" placeholder="Valor de contrato do faturamento direto (ex.: 78.139.708,00)" style="margin:0"></div><div style="margin-top:12px;display:flex;gap:10px;align-items:center"><button class="chip on" id="cs">Salvar</button><span id="cm" style="color:var(--mu)"></span></div></div><div class="c tw" style="margin-top:12px"><table style="min-width:520px"><thead><tr><th>UN</th><th>Diretor</th><th class="r">Valor de contrato</th><th></th></tr></thead><tbody id="cl"></tbody></table></div><div class="n">Os cadastros ficam salvos neste navegador. Em outro computador, é preciso cadastrar de novo.</div></div>
+</div>
+<script>
+const D=[["GEOGRUPO ENGENHARIA (1)",1063164.23,350000,220961,73653.67],["MAURER DO BRASIL",572064.03,370000,309129.96,42734.88],["WEMFE TRANSPORTES",10339247.25,4500000,3474800,725200],["ANCORSOLO FUNDAÇÕES",3012364.89,3012364.88,2635472.05,360450],["ARCELORMITTAL – RIO DAS PEDRAS",3736807.59,2937500,2330269.6,350351.28],["NOSSA TERRA TERRAPLENAGEM",1117413.5,834000,653208.34,119787.17],["L F O ENGENHARIA",680119.16,680119.16,508999.79,123326.76],["ULMA FORMAS E ESCORAMENTOS",1999662.67,1265000,1028082.13,178094.05],["RDC GUINDASTES",1263078.43,800000,713804.23,133063.08],["GG CONCRETO",840000,420000,404670,89926.67],["SUPERMIX CONCRETO",2919501.72,1039185,985402.32,233090.05],["INOVAGEO GEOSSINTÉTICOS",27792.79,10315.5,10315.5,3438.5],["GEOGRUPO ENGENHARIA (2)",1063164.23,95000,83492.08,27830.69],["JLA CASAGRANDE",1150000,1150000,1023659.14,259729.52],["MAPE BORRACHAS",250000,246000,243682.4,10932.57],["AREIAL – AREIA",511085.54,280023.99,166312.91,16434.3],["VOTORANTIM – ENGEMIX OURINHOS",3291220.73,2901015.85,1497840.52,292531.63],["RISEL COMBUSTÍVEIS",2286825.09,1600003.3,813010.51,112750.5],["MODULUS ENGENHARIA",680113.76,650000,404959.07,64345.75],["CSJ ROCHA TRANSPORTE",370232.35,253982.25,158600,30050],["ENESCIL PROJETOS",1950000,1950000,1477963.52,97525.99],["COMERCIAL GOBBO",747624.35,747624.35,567043.09,69293.16],["ARCELORMITTAL – BAURU (1)",6603564.35,3000000,2367311.09,95460.81],["QUALITÉCNICA ESTACAS",419221.43,419221.43,143118.28,47706.09],["P R JACOB TRANSPORTES",342106.64,270000,81588.45,0],["VOTORANTIM CIMENTOS (1)",778000.9,565110,295099.16,33008.26],["C.C. FREITAS CONCRETO",4258617.56,4258617.56,2840731.69,493662.39],["JERUEL PLÁSTICOS",301357.75,100000,44591.47,4623],["FIRME CAMPOS TRANSPORTES",150000,121500,38000,933.33],["ZANUTO METAL MECÂNICA",2001132.53,2001132.53,681710.67,140273.58],["MONGEL GUINDASTES",2001132.53,2001132.53,318532.51,106177.5],["ULTRA MÁQUINAS FERRAMENTAS",450000,75000,19658.72,6552.91],["PROTENDIDOS DYWIDAG",585140.77,11000,4991.25,0],["AR LUG COMPRESSORES",106052.96,0,0,0],["ARCELORMITTAL – SÃO PAULO",339709.78,200000,135986.34,0],["ARCELORMITTAL – JUIZ DE FORA",1,0,0,0],["ARCELORMITTAL – PIRACICABA",226473.19,226011.01,0,0],["BELGO BEKAERT ARAMES",1279439.3,420000.64,0,0],["FAED PARTICIPAÇÕES",419221.43,0,0,0],["O. TONETTO (1)",242106.64,0,0,0],["VOTORANTIM CIMENTOS (2)",778000.9,0,0,0],["SOSINIL AR COMPRIMIDO",106052.96,0,0,0],["ARGIL PNEUMÁTICOS",954476.68,350000,0,0],["ENG CONSULTORIA",733524.21,0,0,0],["R3CICLO RESÍDUOS",224653.93,0,0,0],["BRASECOL FUNDAÇÕES",3012364.89,903000,901861.67,0],["SF FORMAS (1)",248640.76,0,0,0],["SF FORMAS (2)",345262.03,171600,0,0],["TRANSITA TRANSPORTES",307463.81,0,0,0],["ITAMAR DA COSTA CAMPOS",34162.64,0,0,0],["ALUGEO",16750.44,16750.44,0,0],["JEENE JUNTAS",614596.61,0,0,0],["ANTW PROJETOS",40000,0,0,0],["O. TONETTO (2)",279353.38,0,0,0],["JF SINALIZAÇÕES",907506.53,0,0,0],["EIXO SINALIZAÇÃO",907506.53,0,0,0],["CONSTRUMIX",320410.43,0,0,0],["COPLAS PLÁSTICOS",150678.88,0,0,0],["JARACA",1600000,0,0,0],["IPS ENGENHARIA",196000,0,0,0],["SENTRY SECURITY",480000,0,0,0],["SENTINELA SECURITY",480000,0,0,0],["RJR TOPOGRAFIA",190000,0,0,0],["ULTRA MÁQUINAS LOCAÇÕES",150000,200000,0,0],["CASTRO FREMANTOS",500000,0,0,0],["ARCELORMITTAL – BAURU (2)",1557966.75,1557966.45,1557966.45,0],["ROSSETTI FILHOS",259166.52,259166.52,259166.52,0]];
+const BM=[590665.73,2407321.13,1774701.52,4392256.43,3231023.02,3726138.08,4443801.29,5939331.33,2910551.22,0,0,0,0];
+const COL={"Sem saldo":"var(--sm)","Crítico":"var(--cr)","Atenção":"var(--at)","Normal":"var(--ok)","Sem média":"var(--nm)"};
+const R=v=>"R$ "+v.toLocaleString("pt-BR",{maximumFractionDigits:0}),M=v=>(v/1e6).toLocaleString("pt-BR",{maximumFractionDigits:1});
+const UNS={"UN 464":D,"UN 2":[],"UN 3":[],"UN 4":[]};let rows=[],cur="UN 464",ct,ut,oct,risk;
+const mk=L=>L.map(([n,c,oc,u,m])=>{const s=c-u,so=oc-u,f=m>0?so/m:null;let t;
+if(m>0)t=f<1?"Crítico":f<2?"Atenção":"Normal";else t=s<1?"Sem saldo":"Sem média";
+return{n,c,oc,u,s,m,f,t,p:c?u/c:0}});
+const sum=k=>rows.reduce((a,r)=>a+r[k],0),cnt=t=>rows.filter(r=>r.t==t).length;
+const BASE=["UN 464","UN 2","UN 3","UN 4"];let CAD=[];try{CAD=JSON.parse(localStorage.getItem("fat_cad")||"[]")}catch(e){}
+CAD.forEach(x=>{if(!(x.un in UNS))UNS[x.un]=[]});
+const saveCad=()=>{try{localStorage.setItem("fat_cad",JSON.stringify(CAD))}catch(e){}},cadOf=u=>CAD.find(x=>x.un==u),ctOf=u=>cadOf(u)?cadOf(u).v:mk(UNS[u]||[]).reduce((a,r)=>a+r.c,0);
+function render(){ct=cur=="TODAS"?Object.keys(UNS).reduce((a,u)=>a+ctOf(u),0):ctOf(cur);ut=sum("u");document.getElementById("dir").textContent=cadOf(cur)?"Diretor: "+cadOf(cur).dir:"";oct=sum("oc");risk=rows.filter(r=>r.t=="Sem saldo"||r.t=="Crítico");
+document.getElementById("kpi").innerHTML=[["Valor total do contrato",R(ct)],["OCs geradas",R(oct)],["Faturado / utilizado",R(ut)],["Saldo total",R(ct-ut)]].map(([l,v])=>`<div class="c"><div class="l">${l}</div><div class="v">${v}</div></div>`).join("")+
+`<div class="c"><div class="l">% utilizado do contrato</div><div class="v">${(ct?ut/ct*100:0).toFixed(2).replace(".",",")}%</div><div class="bar"><i style="width:${ct?ut/ct*100:0}%"></i></div></div>`+
+`<div class="c risk"><div class="l">Fornecedores em risco</div><div class="v">${risk.length}</div><div class="sub" style="margin:2px 0 0">${cnt("Sem saldo")} sem saldo · ${cnt("Crítico")} críticos</div></div>`;
+document.getElementById("top").innerHTML=rows.filter(r=>r.f!==null).sort((a,b)=>a.f-b.f).slice(0,6).map(r=>`<div class="it"><span>${r.n}</span><b style="color:${COL[r.t]}">${r.f.toFixed(2).replace(".",",")} m</b></div>`).join("");
+(()=>{const B2=(cur=="UN 464"||cur=="TODAS")?BM:BM.map(()=>0),W=520,H=230,mx=Math.max(...B2,1),bw=W/B2.length;let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Medição por BM">`;
+B2.forEach((v,i)=>{const h=v/mx*160,x=i*bw+6;s+=`<rect x="${x}" y="${190-h}" width="${bw-12}" height="${h}" rx="3" fill="var(--ok)" opacity="${v?1:.25}"/>`+(v?`<text x="${x+(bw-12)/2}" y="${184-h}" text-anchor="middle">${M(v)}</text>`:"")+`<text x="${x+(bw-12)/2}" y="210" text-anchor="middle">BM${String(i+1).padStart(2,"0")}</text>`});
+document.getElementById("ch").innerHTML=s+"</svg>"})();
+const G={};Object.entries(UNS).forEach(([u,L])=>{const x=cadOf(u),a=mk(L);if(!x&&!a.length)return;const d=x?x.dir.trim():"Sem diretor cadastrado",key=d.toLowerCase(),g=G[key]||(G[key]={d,us:[],c:0,f:0,k:0});g.us.push(u);g.c+=ctOf(u);g.f+=a.reduce((s,r)=>s+r.u,0);g.k+=a.filter(r=>r.t=="Sem saldo"||r.t=="Crítico").length});
+const T=Object.values(G).map(g=>`<tr${g.us.length==1?` data-u="${g.us[0]}" style="cursor:pointer;${g.us[0]==cur?"font-weight:700":""}"`:g.us.includes(cur)?` style="font-weight:700"`:""}><td>${g.d}</td><td>${g.us.join(", ")}</td><td class="r">${R(g.c)}</td><td class="r">${R(g.f)}</td><td class="r">${R(g.c-g.f)}</td><td class="r">${g.c?(g.f/g.c*100).toFixed(1).replace(".",","):"0,0"}%</td><td class="r">${g.k}</td></tr>`).join("")||`<tr><td colspan="7" style="color:var(--mu)">Cadastre as UNs na aba Cadastro de UN.</td></tr>`;
+document.getElementById("cmp").innerHTML="<thead><tr><th>Diretor</th><th>UN</th><th class='r'>Contrato do fat. direto</th><th class='r'>Faturamento direto</th><th class='r'>Saldo</th><th class='r'>% utiliz.</th><th class='r'>Em risco</th></tr></thead><tbody>"+T+"</tbody>";
+document.querySelectorAll("#cmp tbody tr[data-u]").forEach(t=>t.onclick=()=>{document.getElementById("un").value=t.dataset.u;setUN(t.dataset.u)})}
+let flt="Todos",q="",sk="f",asc=true;
+const tags=["Todos","Sem saldo","Crítico","Atenção","Normal","Sem média"];
+function chips(){document.getElementById("chips").innerHTML=tags.map(t=>`<button class="chip ${t==flt?"on":""}" data-t="${t}">${t!="Todos"?`<span class="d" style="background:${COL[t]}"></span>`:""}${cnt(t)||t=="Todos"?"":""}${t} <b>${t=="Todos"?rows.length:cnt(t)}</b></button>`).join("")+`<input id="q" placeholder="Buscar fornecedor…" value="${q}">`;
+document.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{flt=b.dataset.t;chips();draw()});
+const i=document.getElementById("q");i.oninput=e=>{q=e.target.value;draw()}}
+function draw(){let l=rows.filter(r=>(flt=="Todos"||r.t==flt)&&r.n.toLowerCase().includes(q.toLowerCase()));
+l.sort((a,b)=>{let x=a[sk],y=b[sk];if(x===null)x=1e9;if(y===null)y=1e9;if(typeof x=="string")return asc?x.localeCompare(y):y.localeCompare(x);return asc?x-y:y-x});
+document.getElementById("tb").innerHTML=l.map(r=>`<tr><td>${r.n}</td><td class="r">${R(r.c)}</td><td class="r">${R(r.u)}</td><td><div class="mini"><div class="bar"><i style="width:${Math.min(100,r.p*100)}%;background:${COL[r.t]}"></i></div>${(r.p*100).toFixed(0)}%</div></td><td class="r">${R(r.s)}</td><td class="r">${r.m?R(r.m):"—"}</td><td class="r">${r.f===null?"—":r.f.toFixed(2).replace(".",",")}</td><td><span class="tag" style="background:${COL[r.t]}">${r.t.toUpperCase()}</span></td></tr>`).join("")}
+document.querySelectorAll("th[data-k]").forEach(h=>h.onclick=()=>{const k=h.dataset.k;asc=sk==k?!asc:true;sk=k;draw()});
+function setUN(v){cur=v;rows=v=="TODAS"?Object.values(UNS).flatMap(mk):mk(UNS[v]);flt="Todos";render();chips();draw()}
+const se=document.getElementById("un");se.innerHTML=["TODAS",...Object.keys(UNS)].map(u=>`<option>${u}</option>`).join("");se.value="UN 464";se.onchange=()=>setUN(se.value);
+const $=id=>document.getElementById(id),num=s=>{s=String(s).replace(/[^\d.,-]/g,"");if(s.includes(","))s=s.replace(/\./g,"").replace(",",".");else if(/^-?\d{1,3}(\.\d{3})+$/.test(s))s=s.replace(/\./g,"");return parseFloat(s)};
+function opts(){const s=$("un");s.innerHTML=["TODAS",...Object.keys(UNS)].map(u=>`<option>${u}</option>`).join("");s.value=UNS[cur]?cur:"TODAS"}
+function listCad(){$("cl").innerHTML=CAD.length?CAD.map((x,i)=>`<tr><td>${x.un}</td><td>${x.dir}</td><td class="r">${R(x.v)}</td><td><button class="chip" data-e="${i}">Editar</button> <button class="chip" data-x="${i}">Excluir</button></td></tr>`).join(""):`<tr><td colspan="4" style="color:var(--mu)">Nenhuma UN cadastrada ainda.</td></tr>`;
+document.querySelectorAll("[data-x]").forEach(b=>b.onclick=()=>{const x=CAD.splice(+b.dataset.x,1)[0];if(!BASE.includes(x.un))delete UNS[x.un];saveCad();listCad();opts();setUN(UNS[cur]?cur:"TODAS")});
+document.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>{const x=CAD[+b.dataset.e];$("cu").value=x.un;$("cd").value=x.dir;$("cv").value=x.v.toLocaleString("pt-BR",{minimumFractionDigits:2})})}
+$("cs").onclick=()=>{const un=$("cu").value.trim(),dir=$("cd").value.trim(),v=num($("cv").value);if(!un||!dir||!(v>=0)){$("cm").textContent="Preencha a UN, o diretor e um valor numérico (ex.: 78.139.708,00).";return}
+const key=Object.keys(UNS).find(k=>k.toLowerCase()==un.toLowerCase())||un,o={un:key,dir,v},i=CAD.findIndex(x=>x.un==key);if(i>=0)CAD[i]=o;else CAD.push(o);if(!(key in UNS))UNS[key]=[];saveCad();$("cm").textContent="Salvo.";$("cu").value=$("cd").value=$("cv").value="";listCad();opts();setUN(UNS[cur]?cur:"TODAS")};
+function show(c){$("pgD").style.display=c?"none":"";$("pgC").style.display=c?"":"none";$("tD").classList.toggle("on",!c);$("tC").classList.toggle("on",!!c)}
+$("tD").onclick=()=>show(0);$("tC").onclick=()=>show(1);listCad();
+try{setUN("UN 464");opts()}catch(e){document.body.insertAdjacentHTML("afterbegin",`<div style="background:#d64545;color:#fff;padding:8px 12px">Erro na página: ${e.message}</div>`)}
+</script></body></html>
