@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Controle de Saldo de Fornecedores</title>
+<style>
+:root{--bg:#f4f6f4;--card:#fff;--tx:#1d2b22;--mu:#6b7a70;--ln:#e2e8e3;--br:#1f4d36;--ok:#4f8a5b;--at:#d9a521;--cr:#e9822b;--sm:#d64545;--nm:#8a949c}
+@media(prefers-color-scheme:dark){:root{--bg:#111815;--card:#1a2420;--tx:#e8efe9;--mu:#93a39a;--ln:#2a3730;--br:#7fc29a}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.w{max-width:1180px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:22px;margin:0}h2{font-size:14px;margin:0 0 10px}.sub{color:var(--mu);font-size:13px;margin:2px 0 12px}
+.hd{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.g{display:grid;gap:12px}.k{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.c{background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:14px}
+.l{font-size:11px;letter-spacing:.05em;color:var(--mu);text-transform:uppercase}.v{font-size:20px;font-weight:700;margin-top:4px}
+.bar{height:6px;border-radius:3px;background:var(--ln);overflow:hidden;margin-top:8px}.bar i{display:block;height:100%;background:var(--ok)}
+.risk{border-left:4px solid var(--cr)}
+.row2{grid-template-columns:1fr 1fr;margin-top:12px}@media(max-width:800px){.row2{grid-template-columns:1fr}}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 10px;align-items:center}
+.chip{border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:20px;padding:6px 12px;cursor:pointer;font:inherit;display:flex;gap:6px;align-items:center}
+.chip.on{border-color:var(--br);box-shadow:0 0 0 1px var(--br)}.d{width:10px;height:10px;border-radius:50%}
+input,select,textarea{border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:8px;padding:7px 10px;font:inherit}
+#chips input{margin-left:auto;min-width:180px}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:760px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--mu);text-align:left;padding:8px;border-bottom:1px solid var(--ln);background:var(--card)}
+th[data-k]{cursor:pointer}td{padding:8px;border-bottom:1px solid var(--ln);vertical-align:middle}.r{text-align:right;font-variant-numeric:tabular-nums}
+.tag{font-size:11px;font-weight:700;padding:3px 8px;border-radius:10px;color:#fff;white-space:nowrap}
+.mini{display:flex;align-items:center;gap:6px;min-width:110px}.mini .bar{flex:1;margin:0}
+.it{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--ln)}.it:last-child{border:0}
+svg text{fill:var(--mu);font-size:11px}.n{color:var(--mu);font-size:12px;margin-top:12px}
+.fm{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}.fm input,.fm select{width:100%}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.pri{background:var(--br);color:#fff;border-color:var(--br)}@media(prefers-color-scheme:dark){.pri{color:#111815}}
+#login{max-width:380px;margin:60px auto}#login input{width:100%;margin-bottom:10px}
+.msg{color:var(--mu);font-size:13px}
+</style></head><body><div class="w">
+<div class="hd"><h1>Controle de Saldo de Fornecedores</h1><div id="who2" style="display:none" class="row"><span id="who" class="msg"></span><button class="chip" id="out">Sair</button></div></div>
+
+<div id="login" class="c"><h2>Entrar</h2><div class="sub">Acesso restrito. Use o e-mail e a senha criados pelo administrador.</div>
+<input id="le" type="email" placeholder="E-mail" autocomplete="username"><input id="ls" type="password" placeholder="Senha" autocomplete="current-password">
+<button class="chip pri" id="lg">Entrar</button><div id="lm" class="msg" style="margin-top:10px"></div></div>
+
+<div id="app" style="display:none">
+<div class="chips" id="tabs"></div>
+
+<div id="pgD">
+<div class="chips" style="margin:0 0 12px"><b>UNIDADE</b> <select id="un"></select><span id="dir" class="msg"></span></div>
+<div class="g k" id="kpi"></div>
+<div class="g row2"><div class="c risk"><h2>Atenção imediata: menor cobertura</h2><div id="top"></div></div>
+<div class="c"><h2>Medição por BM (R$ milhões)</h2><div id="ch"></div></div></div>
+<div class="c tw" style="margin-top:12px"><h2>Comparativo</h2><table id="cmp" style="min-width:760px"></table></div>
+<div class="chips" id="chips"></div>
+<div class="c tw"><table id="tbl"><thead><tr><th data-k="n">Fornecedor</th><th class="r" data-k="c">Contratado</th><th class="r" data-k="u">Utilizado</th><th data-k="p">% utilizado</th><th class="r" data-k="s">Saldo</th><th class="r" data-k="m">Média 3M</th><th class="r" data-k="f">Cobertura</th><th data-k="t">Status</th></tr></thead><tbody id="tb"></tbody></table></div>
+<div class="n">Dê dois cliques em um fornecedor para ver os lançamentos dele. Fornecedores repetidos são contratos distintos.</div>
+</div>
+
+<div id="pgC" style="display:none"><div class="c"><h2>Cadastro de UN da obra</h2>
+<div class="fm"><input id="cu" list="dl" placeholder="UN da obra (ex.: UN 464)"><datalist id="dl"></datalist><input id="cd" placeholder="Nome do diretor"><input id="cv" placeholder="Valor total do contrato (ex.: 78.139.708,00)"><input id="cp" placeholder="% de faturamento direto (ex.: 30)"><div id="cf" class="msg" style="align-self:center"></div></div>
+<div class="row"><button class="chip pri" id="cs">Salvar</button><span id="cm" class="msg"></span></div></div>
+<div class="c tw" style="margin-top:12px"><table style="min-width:620px"><thead><tr><th>UN</th><th>Diretor</th><th class="r">Valor do contrato</th><th class="r">% fat. direto</th><th class="r">Fat. direto (R$)</th><th></th></tr></thead><tbody id="cl"></tbody></table></div></div>
+
+<div id="pgI" style="display:none"><div class="c"><h2>Importar dados</h2>
+<div class="sub">Escolha a UN, copie as linhas no Excel e cole na caixa. Cada importação <b>substitui</b> os dados anteriores daquela UN naquela seção.</div>
+<div class="row" style="margin:0 0 10px"><b>UN</b><select id="iu"></select></div>
+<h2 style="margin-top:14px">Enviar a planilha (.xlsx)</h2><div class="sub">Escolha o arquivo Controle-FDC da UN. O site lê a aba <b>notas_fiscais</b>, <b>substitui</b> os lançamentos da UN, soma as medições por BM e refaz a previsão. Os dados são lidos no seu navegador; o arquivo não é guardado.</div>
+<div class="row"><input type="file" id="xi" accept=".xlsx,.xlsm"><button class="chip pri" id="xf">Enviar planilha</button><span id="mX" class="msg"></span></div>
+<div class="sub" style="margin-top:18px"><b>Opção manual:</b> as seções abaixo servem para colar dados quando não houver o arquivo.</div>
+<h2 style="margin-top:14px">1. Fornecedores</h2><div class="sub">Colunas: Fornecedor, Contratado, OC gerada, Utilizado, Média 3M (cabeçalho opcional).</div>
+<textarea id="tF" rows="5" style="width:100%;font:12px monospace"></textarea><div class="row"><button class="chip pri" id="iF">Importar fornecedores</button><span id="mF" class="msg"></span></div>
+<h2 style="margin-top:18px">2. Medições por BM</h2><div class="sub">Duas colunas: BM (ex.: BM01) e valor realizado.</div>
+<textarea id="tB" rows="4" style="width:100%;font:12px monospace"></textarea><div class="row"><button class="chip pri" id="iB">Importar medições</button><span id="mB" class="msg"></span></div>
+<h2 style="margin-top:18px">3. Lançamentos (Relatório de Notas / Faturamento)</h2><div class="sub">Copie as linhas do relatório incluindo a linha de cabeçalho.</div>
+<textarea id="tL" rows="5" style="width:100%;font:12px monospace"></textarea><div class="row"><button class="chip pri" id="iL">Importar lançamentos</button><span id="mL" class="msg"></span></div></div></div>
+
+<div id="pgU" style="display:none"><div class="c tw"><h2>Usuários e permissões</h2>
+<div class="sub">Para criar um usuário novo: no Supabase, Authentication &gt; Users &gt; Add user. Ele aparece aqui como inativo, e você libera o perfil e as UNs.</div>
+<table style="min-width:760px"><thead><tr><th>Usuário</th><th>Perfil</th><th>Ativo</th><th>UNs com acesso</th><th></th></tr></thead><tbody id="ub"></tbody></table><div id="um" class="msg" style="margin-top:10px"></div></div></div>
+</div>
+
+<div id="md" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9;overflow:auto;padding:24px 12px"><div class="c" style="max-width:1100px;margin:0 auto"><div class="hd"><h2 id="mt" style="font-size:16px;margin:0"></h2><button class="chip" id="mx">Fechar</button></div><div id="ms" class="sub"></div><div class="tw"><table style="min-width:900px"><thead><tr><th>Emissão</th><th>Nº Nota</th><th>AF</th><th>Pedido EPR</th><th>Produto</th><th>Unid.</th><th class="r">Qtd.</th><th class="r">Unit.</th><th class="r">Valor total</th><th>BM</th></tr></thead><tbody id="mb"></tbody></table></div></div></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const SB="https://woepvwcddpywstorvszu.supabase.co",KEY="sb_publishable_seBtoZpH8Ly6pO27StA7Yw_iKKZ-sKk";
+const $=id=>document.getElementById(id),esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])),
+R=v=>"R$ "+(+v||0).toLocaleString("pt-BR",{maximumFractionDigits:0}),M=v=>(v/1e6).toLocaleString("pt-BR",{maximumFractionDigits:1}),
+num=s=>{s=String(s).replace(/[^\d.,-]/g,"");if(s.includes(","))s=s.replace(/\./g,"").replace(",",".");else if(/^-?\d{1,3}(\.\d{3})+$/.test(s))s=s.replace(/\./g,"");return parseFloat(s)},
+nm=s=>String(s).normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim().toLowerCase(),
+msg=(id,t)=>{$(id).textContent=t},pf=p=>String(+(+p).toFixed(2)).replace(".",",");
+/* ---------- sessão e API ---------- */
+let S=null,ME=null;
+try{S=JSON.parse(localStorage.getItem("sb_sess")||"null")}catch(e){}
+const saveS=()=>{try{S?localStorage.setItem("sb_sess",JSON.stringify(S)):localStorage.removeItem("sb_sess")}catch(e){}};
+async function auth(path,body){const r=await fetch(SB+"/auth/v1/"+path,{method:"POST",headers:{apikey:KEY,"Content-Type":"application/json"},body:JSON.stringify(body)});const j=await r.json();if(!r.ok)throw new Error(j.error_description||j.msg||j.message||"Erro de login");return j}
+function setS(j){S={access_token:j.access_token,refresh_token:j.refresh_token,uid:j.user?j.user.id:S.uid,exp:Date.now()+((j.expires_in||3600)-60)*1000};saveS()}
+async function api(method,path,body,extra){if(Date.now()>S.exp)setS(await auth("token?grant_type=refresh_token",{refresh_token:S.refresh_token}));
+const r=await fetch(SB+"/rest/v1/"+path,{method,headers:Object.assign({apikey:KEY,Authorization:"Bearer "+S.access_token,"Content-Type":"application/json"},extra||{}),body:body?JSON.stringify(body):undefined});
+if(!r.ok){let m="";try{m=(await r.json()).message}catch(e){}throw new Error(m||"Erro "+r.status)}const t=await r.text();return t?JSON.parse(t):null}
+async function getAll(path){let out=[],from=0;for(;;){const r=await api("GET",path,null,{"Range-Unit":"items",Range:from+"-"+(from+999)});out=out.concat(r);if(r.length<1000)break;from+=1000}return out}
+async function bulk(table,list){for(let i=0;i<list.length;i+=500)await api("POST",table,list.slice(i,i+500),{Prefer:"return=minimal"})}
+function out(m){S=null;ME=null;saveS();$("app").style.display="none";$("who2").style.display="none";$("login").style.display="";msg("lm",m||"")}
+$("lg").onclick=async()=>{msg("lm","Entrando…");try{setS(await auth("token?grant_type=password",{email:$("le").value.trim(),password:$("ls").value}));$("ls").value="";await start()}catch(e){msg("lm",/invalid/i.test(e.message)?"E-mail ou senha incorretos.":e.message)}};
+$("ls").onkeydown=e=>{if(e.key=="Enter")$("lg").click()};$("out").onclick=()=>out("");
+/* ---------- dados ---------- */
+let UNS={},UROWS=[],BMROWS=[],UUN=[],LANC=null,cur="TODAS",rows=[],ct,fd,ut,oct,risk;
+const isA=()=>ME.perfil=="admin",canE=()=>ME.perfil!="leitor";
+async function loadData(){const [u,f,b,uu]=await Promise.all([getAll("unidades?select=*&order=un"),getAll("fornecedores?select=*&order=id"),getAll("bm_medicoes?select=*"),api("GET","user_uns?user_id=eq."+S.uid+"&select=*")]);
+UROWS=u;BMROWS=b;UUN=uu;UNS={};u.forEach(x=>UNS[x.un]=[]);f.forEach(r=>{(UNS[r.un]=UNS[r.un]||[]).push([r.fornecedor,+r.contratado,+r.oc_gerada,+r.utilizado,+r.media_3m])})}
+const cadOf=u=>UROWS.find(x=>x.un==u),
+ctOf=u=>{const x=cadOf(u);return x&&+x.valor_contrato>0?+x.valor_contrato:(UNS[u]||[]).reduce((a,r)=>a+r[1],0)},
+pOf=u=>{const x=cadOf(u);return x&&x.pct_fat_direto!=null?+x.pct_fat_direto:100},fdOf=u=>ctOf(u)*pOf(u)/100,
+mk=L=>L.map(([n,c,oc,u,m])=>{const s=c-u,f=m>0?(oc-u)/m:null;let t;if(m>0)t=f<1?"Crítico":f<2?"Atenção":"Normal";else t=s<1?"Sem saldo":"Sem média";return{n,c,oc,u,s,m,f,t,p:c?u/c:0}}),
+sum=k=>rows.reduce((a,r)=>a+r[k],0),cnt=t=>rows.filter(r=>r.t==t).length,
+COL={"Sem saldo":"var(--sm)","Crítico":"var(--cr)","Atenção":"var(--at)","Normal":"var(--ok)","Sem média":"var(--nm)"};
+function bmArr(){const a=Array(13).fill(0),p=Array(13).fill(0);BMROWS.forEach(r=>{if(cur=="TODAS"||r.un==cur){const k=parseInt(String(r.bm).replace(/\D/g,""))-1;if(k>=0&&k<13){if(r.previsto)p[k]+=+r.valor;else a[k]+=+r.valor}}});return {a,p}}
+function render(){const list=cur=="TODAS"?Object.keys(UNS):[cur];
+ct=list.reduce((a,u)=>a+ctOf(u),0);fd=list.reduce((a,u)=>a+fdOf(u),0);ut=sum("u");oct=sum("oc");risk=rows.filter(r=>r.t=="Sem saldo"||r.t=="Crítico");
+const x=cadOf(cur);$("dir").textContent=cur!="TODAS"&&x&&x.diretor?"  Diretor: "+x.diretor:"";
+const pc=ct?fd/ct*100:0,pu=fd?ut/fd*100:0;
+$("kpi").innerHTML=[["Valor total do contrato",R(ct)],["Faturamento direto ("+pf(pc)+"%)",R(fd)],["OCs geradas",R(oct)],["Faturado / utilizado",R(ut)],["Saldo de OCs (OCs − faturado)",R(oct-ut)],["Saldo total (fat. direto − faturado)",R(fd-ut)]].map(([l,v])=>`<div class="c"><div class="l">${l}</div><div class="v">${v}</div></div>`).join("")+
+`<div class="c"><div class="l">% utilizado do fat. direto</div><div class="v">${pu.toFixed(2).replace(".",",")}%</div><div class="bar"><i style="width:${Math.min(100,pu)}%"></i></div></div><div class="c risk"><div class="l">Solicitação de Pedidos</div><div class="v">${risk.length}</div><div class="sub" style="margin:2px 0 0">${cnt("Sem saldo")} sem saldo · ${cnt("Crítico")} críticos</div></div>`;
+$("top").innerHTML=rows.filter(r=>r.f!==null).sort((a,b)=>a.f-b.f).slice(0,6).map(r=>`<div class="it"><span>${esc(r.n)}${cur=="TODAS"?` <span class="msg">· ${esc(r.un)}</span>`:""}</span><b style="color:${COL[r.t]}">${r.f.toFixed(2).replace(".",",")} m</b></div>`).join("");
+const BA=bmArr(),B2=BA.a.map((v,i)=>v+BA.p[i]),W=520,mx=Math.max(...B2,1),bw=W/13;let s=`<svg viewBox="0 0 ${W} 230" width="100%" role="img" aria-label="Medição por BM">`;
+B2.forEach((v,i)=>{const h=v/mx*160,xx=i*bw+6;s+=`<rect x="${xx}" y="${190-h}" width="${bw-12}" height="${h}" rx="3" fill="var(--ok)" ${BA.p[i]>0?`fill-opacity=".35" stroke="var(--ok)" stroke-dasharray="4 3"`:""} opacity="${v?1:.25}"/>`+(v?`<text x="${xx+(bw-12)/2}" y="${184-h}" text-anchor="middle">${M(v)}${BA.p[i]>0?"*":""}</text>`:"")+`<text x="${xx+(bw-12)/2}" y="210" text-anchor="middle">BM${String(i+1).padStart(2,"0")}</text>`});
+$("ch").innerHTML=s+"</svg>"+(BA.p.some(v=>v>0)?`<div class="msg" style="margin-top:6px">* Previsão: média mensal dos lançamentos dos últimos 3 meses. Some quando o BM recebe lançamentos.</div>`:"");
+const G={};Object.keys(UNS).forEach(u=>{const y=cadOf(u),a=mk(UNS[u]);if(!y&&!a.length)return;const d=y&&y.diretor?y.diretor.trim():"Sem diretor cadastrado",key=d.toLowerCase(),g=G[key]||(G[key]={d,us:[],c:0,fd:0,f:0,k:0});g.us.push(u);g.c+=ctOf(u);g.fd+=fdOf(u);g.f+=a.reduce((z,r)=>z+r.u,0);g.k+=a.filter(r=>r.t=="Sem saldo"||r.t=="Crítico").length});
+const T=Object.values(G).map(g=>`<tr${g.us.includes(cur)?' style="font-weight:700"':""}><td>${esc(g.d)}</td><td>${esc(g.us.join(", "))}</td><td class="r">${R(g.c)}</td><td class="r">${R(g.fd)}</td><td class="r">${R(g.f)}</td><td class="r">${R(g.fd-g.f)}</td><td class="r">${g.fd?(g.f/g.fd*100).toFixed(1).replace(".",","):"0,0"}%</td><td class="r">${g.k}</td></tr>`).join("")||`<tr><td colspan="8" class="msg">Nenhuma UN com dados ainda.</td></tr>`;
+$("cmp").innerHTML="<thead><tr><th>Diretor</th><th>UN</th><th class='r'>Valor do contrato</th><th class='r'>Fat. direto</th><th class='r'>Faturado</th><th class='r'>Saldo</th><th class='r'>% utiliz.</th><th class='r'>Em risco</th></tr></thead><tbody>"+T+"</tbody>"}
+let flt="Todos",q="",sk="f",asc=true;const tags=["Todos","Sem saldo","Crítico","Atenção","Normal","Sem média"];
+function chips(){$("chips").innerHTML=tags.map(t=>`<button class="chip ${t==flt?"on":""}" data-t="${t}">${t!="Todos"?`<span class="d" style="background:${COL[t]}"></span>`:""}${t} <b>${t=="Todos"?rows.length:cnt(t)}</b></button>`).join("")+`<input id="q" placeholder="Buscar fornecedor…" value="${esc(q)}">`;
+$("chips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{flt=b.dataset.t;chips();draw()});$("q").oninput=e=>{q=e.target.value;draw()}}
+function draw(){let l=rows.filter(r=>(flt=="Todos"||r.t==flt)&&r.n.toLowerCase().includes(q.toLowerCase()));
+l.sort((a,b)=>{let x=a[sk],y=b[sk];if(x===null)x=1e9;if(y===null)y=1e9;if(typeof x=="string")return asc?x.localeCompare(y):y.localeCompare(x);return asc?x-y:y-x});
+$("tb").innerHTML=l.map(r=>`<tr data-n="${esc(r.n)}" data-u="${esc(r.un)}" style="cursor:pointer;user-select:none" title="Dê dois cliques para ver os lançamentos"><td>${esc(r.n)}${cur=="TODAS"?` <span class="msg">· ${esc(r.un)}</span>`:""}</td><td class="r">${R(r.c)}</td><td class="r">${R(r.u)}</td><td><div class="mini"><div class="bar"><i style="width:${Math.min(100,r.p*100)}%;background:${COL[r.t]}"></i></div>${(r.p*100).toFixed(0)}%</div></td><td class="r">${R(r.s)}</td><td class="r">${r.m?R(r.m):"—"}</td><td class="r">${r.f===null?"—":r.f.toFixed(2).replace(".",",")}</td><td><span class="tag" style="background:${COL[r.t]}">${r.t.toUpperCase()}</span></td></tr>`).join("")}
+document.querySelectorAll("#tbl th[data-k]").forEach(h=>h.onclick=()=>{const k=h.dataset.k;asc=sk==k?!asc:true;sk=k;draw()});
+function setUN(v){cur=v;rows=(v=="TODAS"?Object.keys(UNS):[v]).flatMap(u=>mk(UNS[u]||[]).map(r=>Object.assign(r,{un:u})));flt="Todos";render();chips();draw()}
+$("un").onchange=()=>setUN($("un").value);
+function fillUN(keep){const n=Object.keys(UNS);$("un").innerHTML=(n.length>1?["TODAS"].concat(n):n).map(u=>`<option>${esc(u)}</option>`).join("");
+if(!(keep&&(UNS[cur]||(cur=="TODAS"&&n.length>1))))cur=n.length>1?"TODAS":(n[0]||"TODAS");$("un").value=cur;setUN(cur);
+const ed=isA()?UROWS.map(x=>x.un):UUN.map(x=>x.un).filter(u=>UNS[u]);$("dl").innerHTML=ed.map(u=>`<option value="${esc(u)}">`).join("");$("iu").innerHTML=ed.map(u=>`<option>${esc(u)}</option>`).join("");listCad()}
+async function reload(){await loadData();LANC=null;fillUN(true)}
+/* ---------- abas ---------- */
+function buildTabs(){const T=[["pgD","Dashboard"]];if(canE())T.push(["pgC","Cadastro de UN"],["pgI","Importar dados"]);if(isA())T.push(["pgU","Usuários"]);
+$("tabs").innerHTML=T.map(([p,l],i)=>`<button class="chip ${i?"":"on"}" data-p="${p}">${l}</button>`).join("");$("tabs").querySelectorAll(".chip").forEach(b=>b.onclick=()=>show(b.dataset.p))}
+function show(p){["pgD","pgC","pgI","pgU"].forEach(x=>$(x).style.display=x==p?"":"none");$("tabs").querySelectorAll(".chip").forEach(b=>b.classList.toggle("on",b.dataset.p==p));if(p=="pgU")loadUsers().catch(e=>msg("um",e.message))}
+async function start(){try{const P=await api("GET","profiles?id=eq."+S.uid+"&select=*");ME=P[0];if(!ME||!ME.ativo){out("Seu acesso ainda não foi liberado. Fale com o administrador.");return}
+await loadData();$("login").style.display="none";$("app").style.display="";$("who2").style.display="flex";msg("who",(ME.nome||"")+" · "+ME.perfil);buildTabs();fillUN(false);show("pgD")}catch(e){out("Não foi possível entrar: "+e.message)}}
+/* ---------- cadastro ---------- */
+function prev(){const v=num($("cv").value),p=num($("cp").value);msg("cf",v>=0&&p>=0&&p<=100?"Faturamento direto: "+R(v*p/100):"")}
+$("cv").oninput=$("cp").oninput=prev;
+function listCad(){$("cl").innerHTML=UROWS.map((x,i)=>`<tr><td>${esc(x.un)}</td><td>${x.diretor?esc(x.diretor):'<span class="msg">Sem diretor cadastrado</span>'}</td><td class="r">${R(x.valor_contrato)}</td><td class="r">${pf(x.pct_fat_direto)}%</td><td class="r">${R(x.valor_contrato*x.pct_fat_direto/100)}</td><td style="white-space:nowrap"><button class="chip" data-e="${i}">Editar</button> ${isA()?`<button class="chip" data-x="${i}">Excluir</button>`:""}</td></tr>`).join("")||`<tr><td colspan="6" class="msg">Nenhuma UN cadastrada ainda.</td></tr>`;
+$("cl").querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>{const x=UROWS[+b.dataset.e];$("cu").value=x.un;$("cd").value=x.diretor||"";$("cp").value=pf(x.pct_fat_direto);$("cv").value=(+x.valor_contrato).toLocaleString("pt-BR",{minimumFractionDigits:2});prev();$("cd").focus()});
+$("cl").querySelectorAll("[data-x]").forEach(b=>b.onclick=async()=>{const x=UROWS[+b.dataset.x];if(!confirm("Excluir "+x.un+"? Isso apaga também fornecedores, medições e lançamentos dessa UN."))return;try{await api("DELETE","unidades?un=eq."+encodeURIComponent(x.un));await reload()}catch(e){msg("cm",e.message)}})}
+$("cs").onclick=async()=>{const un=$("cu").value.trim().replace(/^(\d+)$/,"UN $1"),dir=$("cd").value.trim(),v=num($("cv").value),p=$("cp").value.trim()===""?100:num($("cp").value);
+if(!un||!dir||!(v>=0)||!(p>=0&&p<=100)){msg("cm","Preencha a UN, o diretor, o valor do contrato (ex.: 78.139.708,00) e o % de faturamento direto entre 0 e 100.");return}
+try{await api("POST","unidades?on_conflict=un",{un,diretor:dir,valor_contrato:v,pct_fat_direto:p},{Prefer:"resolution=merge-duplicates,return=minimal"});msg("cm","Salvo.");$("cu").value=$("cd").value=$("cv").value=$("cp").value="";msg("cf","");await reload()}catch(e){msg("cm","Não foi possível salvar (confira se você tem permissão nessa UN): "+e.message)}};
+/* ---------- importação ---------- */
+function tsv(t){const X=[];let r=[],c="",qq=false;for(let i=0;i<t.length;i++){const ch=t[i];if(qq){if(ch=='"'){if(t[i+1]=='"'){c+='"';i++}else qq=false}else c+=ch}else if(ch=='"'&&c==="")qq=true;else if(ch=="\t"){r.push(c);c=""}else if(ch=="\n"){r.push(c);X.push(r);r=[];c=""}else if(ch!="\r")c+=ch}r.push(c);X.push(r);return X}
+const un0=()=>$("iu").value,sure=(un,t)=>confirm("Substituir "+t+" da "+un+" pelos dados colados?");
+$("iF").onclick=async()=>{const un=un0();if(!un){msg("mF","Escolha uma UN (cadastre a UN antes).");return}let X=tsv($("tF").value).filter(r=>r.length>=5&&String(r[0]).trim());if(X.length&&/fornecedor/.test(nm(X[0][0])))X=X.slice(1);
+if(!X.length){msg("mF","Não achei linhas com 5 colunas. Copie Fornecedor, Contratado, OC gerada, Utilizado e Média 3M.");return}if(!sure(un,"os fornecedores"))return;
+try{await api("DELETE","fornecedores?un=eq."+encodeURIComponent(un));await bulk("fornecedores",X.map(r=>({un,fornecedor:r[0].trim(),contratado:num(r[1])||0,oc_gerada:num(r[2])||0,utilizado:num(r[3])||0,media_3m:num(r[4])||0})));msg("mF",X.length+" fornecedores importados.");$("tF").value="";await reload()}catch(e){msg("mF","Erro: "+e.message)}};
+$("iB").onclick=async()=>{const un=un0();if(!un){msg("mB","Escolha uma UN.");return}const X=tsv($("tB").value).filter(r=>/\d/.test(r[0]||"")&&r.length>=2&&!isNaN(num(r[1])));
+if(!X.length){msg("mB","Não achei linhas no formato BM01 [tab] valor.");return}if(!sure(un,"as medições"))return;
+try{await api("DELETE","bm_medicoes?un=eq."+encodeURIComponent(un));await bulk("bm_medicoes",X.map(r=>({un,bm:"BM"+String(parseInt(r[0].replace(/\D/g,""))).padStart(2,"0"),valor:num(r[1])})));msg("mB",X.length+" medições importadas.");$("tB").value="";await reload()}catch(e){msg("mB","Erro: "+e.message)}};
+$("iL").onclick=async()=>{const un=un0();if(!un){msg("mL","Escolha uma UN.");return}const X=tsv($("tL").value),hi=X.findIndex(r=>r.some(c=>/prestador/.test(nm(c))));if(hi<0){msg("mL","Não achei a coluna Prestador da Nota. Copie também a linha de cabeçalho.");return}
+const H=X[hi].map(nm),ix=re=>H.findIndex(h=>re.test(h)),Mp={e:ix(/^emiss/),n:ix(/^n.{0,2}\s?nota$/),a:ix(/^af$/),p:ix(/pedido/),pr:ix(/prestador/),pd:ix(/^produto/),u:ix(/^unid/),q:ix(/^qtd/),un:ix(/^unit/),v:ix(/^valor total/),b:ix(/^bm$/)},g=(r,k)=>Mp[k]>=0?String(r[Mp[k]]||"").trim():"",
+dt=s=>{const d=s.split("/");return d.length==3?d[2]+"-"+d[1].padStart(2,"0")+"-"+d[0].padStart(2,"0"):null},nn=s=>{const v=num(s);return isNaN(v)?null:v};
+const L=X.slice(hi+1).map(r=>({un,emissao:dt(g(r,"e")),nota:g(r,"n"),af:g(r,"a"),pedido_epr:g(r,"p"),prestador:g(r,"pr"),produto:g(r,"pd"),unid:g(r,"u"),qtd:nn(g(r,"q")),unit:nn(g(r,"un")),valor_total:nn(g(r,"v")),bm:g(r,"b")})).filter(x=>x.prestador&&x.valor_total!=null);
+if(!L.length){msg("mL","Nenhum lançamento válido encontrado.");return}if(!sure(un,"os lançamentos"))return;
+try{await api("DELETE","lancamentos?un=eq."+encodeURIComponent(un));await bulk("lancamentos",L);msg("mL",L.length+" lançamentos importados.");$("tL").value="";LANC=null}catch(e){msg("mL","Erro: "+e.message)}};
+/* ---------- envio da planilha .xlsx ---------- */
+$("xf").onclick=async()=>{const un=un0(),f=$("xi").files[0];
+if(!un){msg("mX","Escolha uma UN (cadastre a UN antes).");return}if(!f){msg("mX","Escolha o arquivo .xlsx.");return}
+if(typeof XLSX=="undefined"){msg("mX","Não consegui carregar o leitor de Excel. Verifique a internet e recarregue a página.");return}
+msg("mX","Lendo o arquivo…");
+try{const wb=XLSX.read(await f.arrayBuffer(),{type:"array"}),sn=wb.SheetNames.find(s=>/notas.?fiscais/.test(nm(s)));
+if(!sn){msg("mX","Não achei a aba notas_fiscais. Abas do arquivo: "+wb.SheetNames.join(", "));return}
+const X=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,raw:true,defval:""}),hi=X.findIndex(r=>r.some(c=>/prestador/.test(nm(c))));
+if(hi<0){msg("mX","Não achei a coluna Prestador da Nota na aba "+sn+".");return}
+const H=X[hi].map(nm),ix=re=>H.findIndex(h=>re.test(h)),Mp={e:ix(/^emiss/),n:ix(/^n.{0,2}\s?nota$/),a:ix(/^af$/),p:ix(/pedido/),pr:ix(/prestador/),pd:ix(/^produto/),u:ix(/^unid/),q:ix(/^qtd/),un:ix(/^unit/),v:ix(/^valor total/),b:ix(/^bm$/)},
+raw=(r,k)=>Mp[k]>=0?r[Mp[k]]:"",g=(r,k)=>String(raw(r,k)==null?"":raw(r,k)).trim(),
+nn=(r,k)=>{const v=raw(r,k);if(v===""||v==null)return null;const x=typeof v=="number"?v:num(v);return isNaN(x)?null:x},
+dtv=(r,k)=>{const v=raw(r,k);if(v===""||v==null)return null;if(typeof v=="number")return new Date(Math.round((v-25569)*864e5)).toISOString().slice(0,10);const d=String(v).trim().split("/");return d.length==3?d[2]+"-"+d[1].padStart(2,"0")+"-"+d[0].padStart(2,"0"):null};
+const L=X.slice(hi+1).map(r=>({emissao:dtv(r,"e"),nota:g(r,"n"),af:g(r,"a"),pedido_epr:g(r,"p"),prestador:g(r,"pr"),produto:g(r,"pd"),unid:g(r,"u"),qtd:nn(r,"q"),unit:nn(r,"un"),valor_total:nn(r,"v"),bm:g(r,"b")})).filter(x=>x.prestador&&x.valor_total!=null);
+if(!L.length){msg("mX","Nenhum lançamento válido encontrado na aba "+sn+".");return}
+if(!confirm("Substituir os lançamentos da "+un+" por "+L.length+" linhas do arquivo "+f.name+"?"))return;
+msg("mX","Enviando "+L.length+" lançamentos…");
+const r=await api("POST","rpc/importar_un",{p_un:un,p_token:"",p_lancamentos:L});
+msg("mX","Pronto: "+r.lancamentos+" lançamentos e "+r.bm+" medições (BMs) atualizados na "+un+".");$("xi").value="";LANC=null;await reload()}
+catch(e){msg("mX","Erro: "+e.message+(/sem permissao/.test(e.message)?" (confira se você é editor desta UN e se rodou o SQL de atualização no Supabase)":""))}};
+/* ---------- lançamentos por fornecedor ---------- */
+const SW=new Set(["ltda","s","a","sa","me","epp","eireli","de","da","do","e"]),toks=s=>nm(s).replace(/\(.*?\)/g," ").replace(/[^a-z0-9 ]/g," ").split(" ").filter(w=>w&&!SW.has(w)),
+brand=s=>{let b="";for(const w of toks(s)){b+=w;if(b.length>=4)break}return b};
+async function abre(n,un){$("mt").textContent=n+" · "+un;msg("ms","Carregando…");$("mb").innerHTML="";$("md").style.display="block";
+try{if(LANC===null)LANC=await getAll("lancamentos?select=*&order=emissao.desc")}catch(e){msg("ms","Erro: "+e.message);return}
+const b=brand(n),L=LANC.filter(x=>x.un==un&&brand(x.prestador||"")==b),tot=L.reduce((a,x)=>a+(+x.valor_total||0),0),pre=[...new Set(L.map(x=>x.prestador))],dup=(UNS[un]||[]).filter(r=>brand(r[0])==b).length;
+msg("ms",!LANC.some(x=>x.un==un)?"Nenhum lançamento importado para a "+un+" ainda.":!L.length?"Nenhum lançamento encontrado para este fornecedor.":L.length+(L.length==1?" lançamento":" lançamentos")+" · total "+R(tot)+" · "+pre.join("; ")+(dup>1?" · este fornecedor tem mais de um contrato no painel; os lançamentos de todos aparecem juntos.":""));
+const f2=v=>v==null?"":(+v).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:4});
+$("mb").innerHTML=L.map(x=>`<tr><td>${x.emissao?esc(x.emissao.split("-").reverse().join("/")):""}</td><td>${esc(x.nota)}</td><td>${esc(x.af)}</td><td>${esc(x.pedido_epr)}</td><td>${esc(x.produto)}</td><td>${esc(x.unid)}</td><td class="r">${f2(x.qtd)}</td><td class="r">${f2(x.unit)}</td><td class="r">${f2(x.valor_total)}</td><td>${esc(x.bm)}</td></tr>`).join("")}
+$("tb").ondblclick=e=>{const tr=e.target.closest("tr[data-n]");if(tr)abre(tr.dataset.n,tr.dataset.u)};
+$("mx").onclick=()=>$("md").style.display="none";$("md").onclick=e=>{if(e.target.id=="md")$("md").style.display="none"};document.addEventListener("keydown",e=>{if(e.key=="Escape")$("md").style.display="none"});
+/* ---------- usuários (admin) ---------- */
+async function loadUsers(){const [P,UU]=await Promise.all([getAll("profiles?select=*&order=criado_em"),getAll("user_uns?select=*")]);
+$("ub").innerHTML=P.map(p=>{const mine=p.id==S.uid,us=UU.filter(x=>x.user_id==p.id).map(x=>x.un);
+return `<tr data-id="${esc(p.id)}"><td>${esc(p.nome)}${mine?" (você)":""}</td><td><select class="up" ${mine?"disabled":""}>${["admin","editor","leitor"].map(k=>`<option ${p.perfil==k?"selected":""}>${k}</option>`).join("")}</select></td><td><input type="checkbox" class="ua" ${p.ativo?"checked":""} ${mine?"disabled":""}></td><td>${UROWS.map(u=>`<label style="margin-right:10px;white-space:nowrap"><input type="checkbox" class="uu" value="${esc(u.un)}" ${us.includes(u.un)?"checked":""}> ${esc(u.un)}</label>`).join("")||'<span class="msg">Cadastre UNs primeiro</span>'}</td><td><button class="chip" data-s="${esc(p.id)}">Salvar</button></td></tr>`}).join("");
+$("ub").querySelectorAll("[data-s]").forEach(b=>b.onclick=async()=>{const tr=b.closest("tr"),id=b.dataset.s,mine=id==S.uid,uns=[...tr.querySelectorAll(".uu:checked")].map(x=>x.value);
+try{if(!mine)await api("PATCH","profiles?id=eq."+id,{perfil:tr.querySelector(".up").value,ativo:tr.querySelector(".ua").checked},{Prefer:"return=minimal"});
+await api("DELETE","user_uns?user_id=eq."+id);if(uns.length)await bulk("user_uns",uns.map(un=>({user_id:id,un})));msg("um","Salvo: "+tr.children[0].textContent)}catch(e){msg("um","Erro: "+e.message)}})}
+if(S)start();
+</script></body></html>
